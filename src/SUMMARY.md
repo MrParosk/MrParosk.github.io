@@ -1,3 +1,3 @@
 # Summary
 
-- [Chapter 1](./chapter_1.md)
+- [Decoupling feature creation from training & serving workflow](./decouple_feature_creation.md)
