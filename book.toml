@@ -1,0 +1,6 @@
+[book]
+authors = ["MrParosk"]
+language = "en"
+multilingual = false
+src = "src"
+title = "Machine learning system design patterns"
