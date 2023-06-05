@@ -2,7 +2,7 @@
 
 This design pattern aims to decouple the feature creation from the training and serving workflows. 
 
-It allows for separation of concerns; it allows people with expertise in data engineering to focus creating scalable and robust feature creation pipelines while experts in model builders can focus on the modelling parts.
+It allows for separation of concerns; it let people with expertise in data engineering to focus creating scalable and robust feature creation pipelines while experts in model builders can focus on the modelling parts.
 
 Decrease the risk of training-serving skews. A common cause of bugs in machine learning systems are difference in data processing between training and serving. 
 
@@ -21,3 +21,7 @@ Below is an example table with this structure:
 | 1582       | 5768     | electronics  | 192.0                   | 0.8                   |
 | 1582       | 9922     | electronics  | 29.0                    | 0.3                   |
 | 1988       | 9922     | clothes      | 29.0                    | 0.1                   |
+
+Whether we should implement this ourself like above or use an external platform like [Feast](https://docs.feast.dev/) is context dependent. The above approach is good since we don't have to learn a new tool and integrate with it. We can simply use our preferred data warehouse / datalake solution.
+
+However, if we instead would like to do online inference the approach above has most likely too high latency for feature retrieval. To improve the latency of retrieval, we could store the features for inference in a key-value store, like Redis. However, adding these capabilities would require a lot of engineering efforts and simply using a third-party system like Feast is most likely easier.

@@ -1,3 +1,4 @@
 # Summary
 
-- [Decoupling feature creation from training & serving workflow](./decouple_feature_creation.md)
+- [Training workflow](./training_workflow.md)
+- [Decoupling feature creation from workflows](./decouple_feature_creation.md)
