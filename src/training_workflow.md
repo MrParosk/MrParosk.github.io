@@ -31,6 +31,18 @@ For example, image that we decide to train on data from users in USA and evaluat
 
 ## Feature engineering
 
+In this task we will do the feature creation and the feature pre-processing.
+
+By feature creation I mean constructing the actual features. For example, calculating a rolling average of bought items for a given users during the last 14 days. Note that in general we would like to do this outside of the training workflow, see [decoupling feature creation from training & serving workflow](decouple_feature_creation.md).
+
+However there might be special cases where we have to do it in the training workflows. As an example, image that as part of the inference request we get a list of outlier days that the user has provided and we have a rolling average feature. In this case, we need to calculate the rolling average after removing the outliers, otherwise they will influence this feature. Since this feature needs to be calculated at "runtime" for inference it makes sense to do the same for training, allowing us to re-use the functionality and avoid skews.
+
+But in general this should be avoided if possible, as described in [decoupling feature creation from training & serving workflow](decouple_feature_creation.md). And sometimes we could re-frame the feature to avoid having to compute it at "runtime". In the example above, we could potentially use median instead of mean to remove the need for the user to provide the outlier days.
+
+The second part is feature pre-processing. Here we transform the features into a more desirable format. For example, we could transform a column of words to indices, Z-normalize a numerical column etc. A common pattern is to include this logic in the model, see [embed pre & post processing logic in the model](embedd_processing_logic_model.md).
+
+However, we might do the pre-processing in this task and then embed this into the model at a later time. The reason why we might want to do that is because this processing can be computationally heavy, especially if there is a large amount of data. This is actually what [Tensorflow transform](https://www.tensorflow.org/tfx/transform/get_started) does.
+
 ## Train model
 
 ## Model analysis
