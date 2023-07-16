@@ -45,4 +45,8 @@ However, we might do the pre-processing in this task and then embed this into th
 
 ## Train model
 
+In this step we have assembled everything needed to start training our machine learning model. To start with, me might begin with hyperparameter tuning where we try to find a good combination of hyper-parameters (e.g. learning-rate, batch-size etc).
+
+Once those has been discovered we can do our final training with the "best" hyper-parameters we found.
+
 ## Model analysis
