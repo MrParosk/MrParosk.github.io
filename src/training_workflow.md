@@ -10,7 +10,7 @@ graph LR
     D --> E[Model analysis]
 ```
 
-I first saw this structure in the [TFX project](https://www.tensorflow.org/tfx/guide), but it might originate somewhere else.
+I first saw this structure in the [TFX project](https://www.tensorflow.org/tfx/guide), but it might originate somewhere else. We could simply use Tensorflow Extended (TFX) for our training workflow or implement this structure in another framework, such as [Kubeflow Pipelines](https://github.com/kubeflow/pipelines).
 
 ## Data ingestion
 
@@ -50,3 +50,7 @@ In this step we have assembled everything needed to start training our machine l
 Once those has been discovered we can do our final training with the "best" hyper-parameters we found.
 
 ## Model analysis
+
+The final step in our workflow is the model analysis. Here we will inspect the models performance, such as accuracy, F1-score, root-mean squared error etc. Furthermore, it's common to check the performance on different slices of the data to find potential imbalances in performance between the slices.
+
+For example, let's say our data comes from users in two different regions: US and EU. Now it can be valuable to check what the accuracy of the model is for users in US and EU. If there is a large discrepancy between these two groups it can flag that we might have an issue with the model. As an example, the average accuracy is good for the two groups, but the model performs much worse for users in EU then in US. [TensorFlow Model Analysis](https://www.tensorflow.org/tfx/model_analysis/get_started) is a tool that helps us do this model analysis.
