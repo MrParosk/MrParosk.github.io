@@ -34,3 +34,7 @@ model_pipeline = Pipeline(steps=[
 with open("model.pkl","wb") as fp:
     pickle.dump(model_pipeline, fp)
 ```
+
+Frameworks such as Tensorflow and PyTorch also have similar support for this pattern. In this case, we will embed the pre-processing steps into the computational graph. Then when we save the model these steps will be included automatically, since it is a part of computational graph.
+
+When we have a large amount of data for training it can be a good idea to do the pre-processing outside of the model (preferably with a distributed computing framework) and later embed the pre-processing into the model object before we save it for serving. This is actually what [Tensorflow transform](https://www.tensorflow.org/tfx/transform/get_started) does. Here the pre-processing step is done with Apache Beam and once we have finished training we embed these steps into the computational graph which gets exported.
