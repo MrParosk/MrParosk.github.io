@@ -39,7 +39,7 @@ However there might be special cases where we have to do it in the training work
 
 But in general this should be avoided if possible, as described in [decoupling feature creation from training & serving workflow](decouple_feature_creation.md). And sometimes we could re-frame the feature to avoid having to compute it at "runtime". In the example above, we could potentially use median instead of mean to remove the need for the user to provide the outlier days.
 
-The second part is feature pre-processing. Here we transform the features into a more desirable format. For example, we could transform a column of words to indices, Z-normalize a numerical column etc. A common pattern is to include this logic in the model, see [embed pre & post processing logic in the model](embedd_processing_logic_model.md).
+The second part is feature pre-processing. Here we transform the features into a more desirable format. For example, we could transform a column of words to integers through tokenization, Z-normalize a numerical column etc. A common pattern is to include this logic in the model, see [embed pre & post processing logic in the model](embedd_processing_logic_model.md).
 
 However, we might do the pre-processing in this task and then embed this into the model at a later time. The reason why we might want to do that is because this processing can be computationally heavy, especially if there is a large amount of data. This is actually what [Tensorflow transform](https://www.tensorflow.org/tfx/transform/get_started) does.
 

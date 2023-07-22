@@ -1,1 +1,36 @@
 # Embed pre & post processing logic in the model
+
+Before we feed the data into our machine learning model we usually have pre-processing steps. For example, we could transform a column of words to integers through tokenization, Z-normalize a numerical column etc. It's very important that these steps gets applied in the same way for training as in serving.
+
+For example, assume we have a feature thats follows a normal distribution with mean 5 and standard deviation of 2. Before feeding this column into our machine learning model (say a decision tree) we Z-normalize the column to mean 0 and standard deviation of 1. Now, during training of our decision tree we have made a split, s.t. if the value is smaller then 0.5 then we take the left branch, otherwise the right. Now if we forget to apply this Z-normalization on the feature almost all of the data points will be larger 0.5, causing the model to behave completely differently.
+
+So how do we make sure that the pre-processing steps gets applied in a similar fashion between training and serving? A common pattern is to embed this step into the model object. Now when we save the model after training in order to be used for serving, this step gets automatically included. An example of this approach is [Sklearn pipelines](https://scikit-learn.org/stable/modules/generated/sklearn.pipeline.Pipeline.html). Below is an example of a Sklearn pipeline where we Z-normalize the feature "revenue" as part of our pipeline:
+
+```python 
+from sklearn.preprocessing import StandardScaler
+from sklearn.pipeline import Pipeline
+from sklearn.compose import ColumnTransformer
+from sklearn.linear_model import LinearRegression
+
+num_cols = ["revenue"]
+
+numerical_pipeline = Pipeline(steps=[
+    ("Z-normalize", StandardScaler())
+])
+
+col_transform = ColumnTransformer(transformers=[
+        ("num_pipeline", numerical_pipeline, num_cols),
+    ]
+)
+
+model = LinearRegression()
+
+model_pipeline = Pipeline(steps=[
+    ("col_trans", col_transform),
+    ("model", model)
+])
+
+# The serialized model will contain the z-normalize step
+with open("model.pkl","wb") as fp:
+    pickle.dump(model_pipeline, fp)
+```
