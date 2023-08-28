@@ -18,7 +18,7 @@ Lastly, we have the post-process step. Here we transform the outputted predictio
 
 Now with these tree steps, how should they be deployed? As one service or spread out into multiple? There is a few different approaches for doing this which we will delve into now with their own advantages and disadvantages.
 
-## Group all steps together
+## Group all steps together in one service
 
 The first approach we will discuss is to group all the steps into one service. Below is an example code structure:
 
@@ -51,10 +51,26 @@ The advantages of this approach that it is simple. You only need to deploy one s
 
 [VertexAI model serving](https://github.com/googleapis/python-aiplatform/blob/main/google/cloud/aiplatform/prediction/sklearn/predictor.py) and [Ray Serve](https://docs.ray.io/en/latest/serve/index.html) are examples of frameworks that uses this approach.
 
-## Separate steps
+## Separate each step into a service
+
+The next approach is to separate each step into a service. These would then communicate over HTTP / gRPC. Below is a diagram of the communication flow:
 
 ```mermaid
 graph LR
-    A[Pre-process] --> B[Predict]
-    B --> C[Post-process]
+    A[External service] --> B[Pre-process service]
+    B --> C[Predict service]
+    C --> D[Post-process service]
+    D --> A
 ```
+
+Now you might ask "why would we want to do this"? To answer that question, lets imagine the following case-study:
+
+Let's say we have a large convolutional neural network that we want to deploy. To speed up the inference part we decide to run the model on a GPU. Furthermore, our pre-processing step is quite time-consuming, e.g. we want crop the image and convert from [RGB](https://en.wikipedia.org/wiki/RGB_color_model) to [HSV](https://en.wikipedia.org/wiki/HSL_and_HSV). Moreover, let's say we are getting an increase in request so we need to scale-up this solution. If all the steps are grouped together, we need deploy additional replicas of the same service, regardless of which part is the bottleneck. Furthermore, during the pre & post-processing step our GPU is idle which is wasteful since GPU's are expensive. Now imagine these were separate steps, then we could scale them separately depending on which part was the bottleneck.
+
+Another advantage of this separation is that we can co-locate our models on a model inference server, such as [triton-inference-server](https://github.com/triton-inference-server/server) and [tensorflow serving](https://github.com/tensorflow/serving). Now we could load multiple replicas of a model and/or multiple models. This is advantages since it allow us to utilize our GPU better.
+
+Lastly, most of these inference servers allows us to off-load models that haven't been used in a while, and load it once a request comes for that specific model (of course with a latency cost). This feature can be helpful if we need to serve a large number of models. For example, imagine that we have a model that forecasts how much we will sell of an item in a given country. Through our experiments we have determined that having one model per country performed better then a global one. Furthermore, assume that we operate in many different countries. If we have included all steps in one service, we would have to deploy one of these services for each country (and potentially more if the number of requests are large). However when the steps are separated, we could co-locate all of the models on an inference server, potentially getting away with fewer deployments.
+
+[Kserve](https://github.com/kserve/kserve) and [Seldon](https://github.com/SeldonIO/seldon-core) are examples of frameworks that uses this approach.
+
+## When to use which approach?
