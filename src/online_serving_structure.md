@@ -17,3 +17,44 @@ The predict part is where we do the actual model inference. We send in the data 
 Lastly, we have the post-process step. Here we transform the outputted predictions into a format which can be used by the system as a whole. For example, we might transformed predicted class-ids into class names, such as 0 into the name 'Dog'.
 
 Now with these tree steps, how should they be deployed? As one service or spread out into multiple? There is a few different approaches for doing this which we will delve into now with their own advantages and disadvantages.
+
+## Group all steps together
+
+The first approach we will discuss is to group all the steps into one service. Below is an example code structure:
+
+```python
+class InferenceHandler:
+    def __init__(self, model_path):
+        # load the model, e.g. with pickle
+        pass
+
+    def pre_process(self, x):
+        # define the pre-process logic in this function
+        pass
+
+    def predict(self, x):
+        # define how the model's predict function should be called in this function
+        pass
+
+    def post_process(self, x):
+        # define the post-process logic in this function
+        pass
+
+    def infer(self, x):
+        # in this function we glue all of the above step together
+        return self.post_process(self.predict(self.pre_process(x)))
+```
+
+The class above would then be included in a web-server which exposes an end-point that allow users to call it through HTTP or gRPC.
+
+The advantages of this approach that it is simple. You only need to deploy one service, making the deployment process a lot smoother. Furthermore, keeping the different steps in synchronisation is a lot easier. For example, imaging we wanted to update our predict function to accept batches of inputs (i.e. from input shape of (num_features) to (num_samples, num_features)). This change would require us to also update the pre & post-processing steps. Now, if these were deployed separately, we would need re-deploy all the services which is more cumbersome.
+
+[VertexAI model serving](https://github.com/googleapis/python-aiplatform/blob/main/google/cloud/aiplatform/prediction/sklearn/predictor.py) and [Ray Serve](https://docs.ray.io/en/latest/serve/index.html) are examples of frameworks that uses this approach.
+
+## Separate steps
+
+```mermaid
+graph LR
+    A[Pre-process] --> B[Predict]
+    B --> C[Post-process]
+```
