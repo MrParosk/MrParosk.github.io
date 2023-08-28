@@ -21,7 +21,7 @@ jobs:
 
       - name: Install rust and Cargo
         run:
-          curl https://sh.rustup.rs -sSf | sh
+          curl https://sh.rustup.rs -sSf | bash -s -- -y
 
       - name: Install mdbook
         run: |
