@@ -88,11 +88,33 @@
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
 
+        <!-- Track and set sidebar scroll position -->
+        <script>
+            var sidebarScrollbox = document.querySelector('#sidebar .sidebar-scrollbox');
+            sidebarScrollbox.addEventListener('click', function(e) {
+                if (e.target.tagName === 'A') {
+                    sessionStorage.setItem('sidebar-scroll', sidebarScrollbox.scrollTop);
+                }
+            }, { passive: true });
+            var sidebarScrollTop = sessionStorage.getItem('sidebar-scroll');
+            sessionStorage.removeItem('sidebar-scroll');
+            if (sidebarScrollTop) {
+                // preserve sidebar scroll position when navigating via links within sidebar
+                sidebarScrollbox.scrollTop = sidebarScrollTop;
+            } else {
+                // scroll sidebar to current active section when navigating via "next/previous chapter" buttons
+                var activeSection = document.querySelector('#sidebar .active');
+                if (activeSection) {
+                    activeSection.scrollIntoView({ block: 'center' });
+                }
+            }
+        </script>
+
         <div id="page-wrapper" class="page-wrapper">
 
             <div class="page">
                                 <div id="menu-bar-hover-placeholder"></div>
-                <div id="menu-bar" class="menu-bar sticky bordered">
+                <div id="menu-bar" class="menu-bar sticky">
                     <div class="left-buttons">
                         <button id="sidebar-toggle" class="icon-button" type="button" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
                             <i class="fa fa-bars"></i>
@@ -149,20 +171,20 @@
 <p>Below we describe how to do this validation for batch &amp; online inference.</p>
 <h2 id="batch-inference"><a class="header" href="#batch-inference">Batch inference</a></h2>
 <p>A typical batch-inference workflow has the following structure:</p>
-<pre><code class="language-mermaid">graph LR
+<pre class="mermaid">graph LR
     A[Data ingestion] --&gt; B[Data validation]
     B --&gt; C[Model inference]
-</code></pre>
+</pre>
 <p>In the data validation task we will perform the validation. That is, compare the data schema for the ingested data for inference and the produced data schema during training. We will also compare the data distribution between the two datasets. If the schemas &amp; data distributions are the same we will continue to the model inference task, otherwise we might fail the workflow and/or notify the developers that something is wrong.</p>
 <h2 id="online-inference"><a class="header" href="#online-inference">Online inference</a></h2>
 <p>Doing the data validation for online inference is a bit trickier. First of, most metrics to detect distribution differences requires a sizeable amount of data. For online inference we might only have at hand one or a couple of data-points (i.e. batched requests) at hand and computing this difference is not meaningful. Also doing this data validation would introduce more latency to our system since it's an additional step we need to perform.</p>
 <p>So how can we solve this? One approach is take the requests we get in the online inference service and forward them to an additional service, called data validation service. Here we will store the requests and once we have reached an adequate amount of data we will trigger a batch data validation job where we compare the data schema and distribution for these requests with the ones produced by the training workflow. If the schema &amp; data distribution are different, we will notify the developers that something is wrong. We could also run this as a cron job such that we do the data validation on new requests every X hours or days.</p>
 <p>Furthermore, if the amount of requests is large we could sample these requests randomly such that we only do the data validation on a percentage of the requests.</p>
 <p>Below is an overview of this architecture:</p>
-<pre><code class="language-mermaid">graph LR
+<pre class="mermaid">graph LR
     A[User] &lt;--&gt; B[Online inference service]
     B --&gt; C[Data validation service]
-</code></pre>
+</pre>
 
                     </main>
 

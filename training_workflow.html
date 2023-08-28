@@ -88,11 +88,33 @@
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
 
+        <!-- Track and set sidebar scroll position -->
+        <script>
+            var sidebarScrollbox = document.querySelector('#sidebar .sidebar-scrollbox');
+            sidebarScrollbox.addEventListener('click', function(e) {
+                if (e.target.tagName === 'A') {
+                    sessionStorage.setItem('sidebar-scroll', sidebarScrollbox.scrollTop);
+                }
+            }, { passive: true });
+            var sidebarScrollTop = sessionStorage.getItem('sidebar-scroll');
+            sessionStorage.removeItem('sidebar-scroll');
+            if (sidebarScrollTop) {
+                // preserve sidebar scroll position when navigating via links within sidebar
+                sidebarScrollbox.scrollTop = sidebarScrollTop;
+            } else {
+                // scroll sidebar to current active section when navigating via "next/previous chapter" buttons
+                var activeSection = document.querySelector('#sidebar .active');
+                if (activeSection) {
+                    activeSection.scrollIntoView({ block: 'center' });
+                }
+            }
+        </script>
+
         <div id="page-wrapper" class="page-wrapper">
 
             <div class="page">
                                 <div id="menu-bar-hover-placeholder"></div>
-                <div id="menu-bar" class="menu-bar sticky bordered">
+                <div id="menu-bar" class="menu-bar sticky">
                     <div class="left-buttons">
                         <button id="sidebar-toggle" class="icon-button" type="button" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
                             <i class="fa fa-bars"></i>
@@ -146,12 +168,12 @@
                     <main>
                         <h1 id="training-workflow"><a class="header" href="#training-workflow">Training workflow</a></h1>
 <p>A common structure for a training pipeline is visualized below:</p>
-<pre><code class="language-mermaid">graph LR
+<pre class="mermaid">graph LR
     A[Data ingestion] --&gt; B[Data validation]
     B --&gt; C[Feature engineering]
     C --&gt; D[Train model]
     D --&gt; E[Model analysis]
-</code></pre>
+</pre>
 <p>I first saw this structure in the <a href="https://www.tensorflow.org/tfx/guide">TFX project</a>, but it might originate somewhere else. We could simply use Tensorflow Extended (TFX) for our training workflow or implement this structure in another framework, such as <a href="https://github.com/kubeflow/pipelines">Kubeflow Pipelines</a>.</p>
 <h2 id="data-ingestion"><a class="header" href="#data-ingestion">Data ingestion</a></h2>
 <p>In this task we load the data needed for training our machine learning model from an external system, e.g. a feature-store or a data warehouse. Typically in this step we also split the data into separate sets: training, validation and test.</p>

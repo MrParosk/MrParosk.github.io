@@ -88,11 +88,33 @@
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
 
+        <!-- Track and set sidebar scroll position -->
+        <script>
+            var sidebarScrollbox = document.querySelector('#sidebar .sidebar-scrollbox');
+            sidebarScrollbox.addEventListener('click', function(e) {
+                if (e.target.tagName === 'A') {
+                    sessionStorage.setItem('sidebar-scroll', sidebarScrollbox.scrollTop);
+                }
+            }, { passive: true });
+            var sidebarScrollTop = sessionStorage.getItem('sidebar-scroll');
+            sessionStorage.removeItem('sidebar-scroll');
+            if (sidebarScrollTop) {
+                // preserve sidebar scroll position when navigating via links within sidebar
+                sidebarScrollbox.scrollTop = sidebarScrollTop;
+            } else {
+                // scroll sidebar to current active section when navigating via "next/previous chapter" buttons
+                var activeSection = document.querySelector('#sidebar .active');
+                if (activeSection) {
+                    activeSection.scrollIntoView({ block: 'center' });
+                }
+            }
+        </script>
+
         <div id="page-wrapper" class="page-wrapper">
 
             <div class="page">
                                 <div id="menu-bar-hover-placeholder"></div>
-                <div id="menu-bar" class="menu-bar sticky bordered">
+                <div id="menu-bar" class="menu-bar sticky">
                     <div class="left-buttons">
                         <button id="sidebar-toggle" class="icon-button" type="button" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
                             <i class="fa fa-bars"></i>
@@ -146,10 +168,10 @@
                     <main>
                         <h1 id="online-serving-structure"><a class="header" href="#online-serving-structure">Online serving structure</a></h1>
 <p>When deploying our machine learning model for online inference we typically divide into two parts, our backend service and our machine learning inference service. Below is a diagram of the high-level overview of this setup:</p>
-<pre><code class="language-mermaid">graph LR
+<pre class="mermaid">graph LR
     A[User] &lt;--&gt; B[Backend service]
     B &lt;--&gt; C[Machine learning inference service]
-</code></pre>
+</pre>
 <p>Our backend service is responsible authenticate the request, fetching necessary data from the feature store etc. The machine learning inference service will be tasked with doing the actual inference of the machine learning model. It can be broken up into three parts; pre-process, predict and post-process. </p>
 <p>The pre-process step include steps like validating that the required data is available for doing the request, that the data types are correct etc. We try to avoid including model specific pre-processing step here, see <a href="embedd_processing_logic_model.html">Embed pre &amp; post processing logic in the model</a> for clarification.</p>
 <p>The predict part is where we do the actual model inference. We send in the data produces from pre-process step into the model to get the predictions.</p>
@@ -183,12 +205,12 @@
 <p><a href="https://github.com/googleapis/python-aiplatform/blob/main/google/cloud/aiplatform/prediction/sklearn/predictor.py">VertexAI model serving</a> and <a href="https://docs.ray.io/en/latest/serve/index.html">Ray Serve</a> are examples of frameworks that uses this approach.</p>
 <h2 id="separate-each-step-into-a-service"><a class="header" href="#separate-each-step-into-a-service">Separate each step into a service</a></h2>
 <p>The next approach is to separate each step into a service. These would then communicate over HTTP / gRPC. Below is a diagram of the communication flow:</p>
-<pre><code class="language-mermaid">graph LR
+<pre class="mermaid">graph LR
     A[External service] --&gt; B[Pre-process service]
     B --&gt; C[Predict service]
     C --&gt; D[Post-process service]
     D --&gt; A
-</code></pre>
+</pre>
 <p>Now you might ask &quot;why would we want to do this&quot;? To answer that question, lets imagine the following case-study:</p>
 <p>Let's say we have a large convolutional neural network that we want to deploy. To speed up the inference part we decide to run the model on a GPU. Furthermore, our pre-processing step is quite time-consuming, e.g. we want crop the image and convert from <a href="https://en.wikipedia.org/wiki/RGB_color_model">RGB</a> to <a href="https://en.wikipedia.org/wiki/HSL_and_HSV">HSV</a>. Moreover, let's say we are getting an increase in request so we need to scale-up this solution. If all the steps are grouped together, we need deploy additional replicas of the same service, regardless of which part is the bottleneck. Furthermore, during the pre &amp; post-processing step our GPU is idle which is wasteful since GPU's are expensive. Now imagine these were separate steps, then we could scale them separately depending on which part was the bottleneck.</p>
 <p>Another advantage of this separation is that we can co-locate our models on a model inference server, such as <a href="https://github.com/triton-inference-server/server">triton-inference-server</a> and <a href="https://github.com/tensorflow/serving">tensorflow serving</a>. Now we could load multiple replicas of a model and/or multiple models. This is advantages since it allow us to utilize our GPU better.</p>
