@@ -12,14 +12,32 @@ jobs:
     concurrency:
       group: ${{ github.workflow }}-${{ github.ref }}
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout
+        uses: actions/checkout@v2
 
-      - name: Setup mdBook
-        uses: peaceiris/actions-mdbook@v1
-        with:
-          mdbook-version: '0.4.30'
+      - name: Setup local env
+        run:
+          apt update && apt upgrade && apt install curl
 
-      - run: mdbook build
+      - name: Install rust and Cargo
+        run:
+          curl https://sh.rustup.rs -sSf | sh
+
+      - name: Install mdbook
+        run: |
+          cargo install mdbook
+          cargo install mdbook-mermaid
+
+      # - name: Setup mdBook
+      #   uses: peaceiris/actions-mdbook@v1
+      #   with:
+      #     mdbook-version: '0.4.30'
+
+      - name: Build mdbook
+        run: mdbook build
+
+      - name: Add mermaid to book directory
+        run: mdbook-mermaid install ./book/
 
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v3
