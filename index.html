@@ -1,0 +1,227 @@
+<!DOCTYPE HTML>
+<html lang="en" class="sidebar-visible no-js light">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Training workflow - Machine learning system design patterns</title>
+
+
+        <!-- Custom HTML head -->
+        
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff" />
+
+        <link rel="icon" href="favicon.svg">
+        <link rel="shortcut icon" href="favicon.png">
+        <link rel="stylesheet" href="css/variables.css">
+        <link rel="stylesheet" href="css/general.css">
+        <link rel="stylesheet" href="css/chrome.css">
+        <link rel="stylesheet" href="css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="highlight.css">
+        <link rel="stylesheet" href="tomorrow-night.css">
+        <link rel="stylesheet" href="ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+
+    </head>
+    <body>
+    <div id="body-container">
+        <!-- Provide site root to javascript -->
+        <script>
+            var path_to_root = "";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('no-js')
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add('js');
+        </script>
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            var html = document.querySelector('html');
+            var sidebar = null;
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+            }
+            html.classList.remove('sidebar-visible');
+            html.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded "><a href="training_workflow.html" class="active"><strong aria-hidden="true">1.</strong> Training workflow</a></li><li class="chapter-item expanded "><a href="decouple_feature_creation.html"><strong aria-hidden="true">2.</strong> Decoupling feature creation from workflows</a></li><li class="chapter-item expanded "><a href="embedd_processing_logic_model.html"><strong aria-hidden="true">3.</strong> Embed pre & post processing logic in the model</a></li><li class="chapter-item expanded "><a href="data_validation_inference.html"><strong aria-hidden="true">4.</strong> Data validation for inference</a></li><li class="chapter-item expanded "><a href="online_serving_structure.html"><strong aria-hidden="true">5.</strong> Online serving structure</a></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky bordered">
+                    <div class="left-buttons">
+                        <button id="sidebar-toggle" class="icon-button" type="button" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </button>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Machine learning system design patterns</h1>
+
+                    <div class="right-buttons">
+                        <a href="print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="training-workflow"><a class="header" href="#training-workflow">Training workflow</a></h1>
+<p>A common structure for a training pipeline is visualized below:</p>
+<pre><code class="language-mermaid">graph LR
+    A[Data ingestion] --&gt; B[Data validation]
+    B --&gt; C[Feature engineering]
+    C --&gt; D[Train model]
+    D --&gt; E[Model analysis]
+</code></pre>
+<p>I first saw this structure in the <a href="https://www.tensorflow.org/tfx/guide">TFX project</a>, but it might originate somewhere else. We could simply use Tensorflow Extended (TFX) for our training workflow or implement this structure in another framework, such as <a href="https://github.com/kubeflow/pipelines">Kubeflow Pipelines</a>.</p>
+<h2 id="data-ingestion"><a class="header" href="#data-ingestion">Data ingestion</a></h2>
+<p>In this task we load the data needed for training our machine learning model from an external system, e.g. a feature-store or a data warehouse. Typically in this step we also split the data into separate sets: training, validation and test.</p>
+<h2 id="data-validation"><a class="header" href="#data-validation">Data validation</a></h2>
+<p>In this task we will validate that our data follows some pre-defined structure. One common case is that the data follows a given schema. For example, we might expects that:</p>
+<ul>
+<li>That the column 'prices' should be of type float and should not be negative.</li>
+<li>That the column 'country' should be of type string and can only have the following values: ['US', 'CA', 'MX']</li>
+</ul>
+<p>During this step we can also compute statistics about the data, such as histogram of numerical columns. These statics will be useful during serving when are trying to detection training-serving skews.</p>
+<p>We can also compare the distribution between the training set and the validation &amp; test set. This can be useful to detection any issues creating when splitting the data. </p>
+<p>For example, image that we decide to train on data from users in USA and evaluate on data from users in Canada and Mexico. However, the behaviour of users in USA might be completely different from users in Canada and Mexico and therefore our model might perform poorly on the validation set. Comparing the distribution between training and validation can give us useful information how we need to change our splitting strategy.</p>
+<h2 id="feature-engineering"><a class="header" href="#feature-engineering">Feature engineering</a></h2>
+<p>In this task we will do the feature creation and the feature pre-processing.</p>
+<p>By feature creation I mean constructing the actual features. For example, calculating a rolling average of bought items for a given users during the last 14 days. Note that in general we would like to do this outside of the training workflow, see <a href="decouple_feature_creation.html">decoupling feature creation from training &amp; serving workflow</a>.</p>
+<p>However there might be special cases where we have to do it in the training workflows. As an example, image that as part of the inference request we get a list of outlier days that the user has provided and we have a rolling average feature. In this case, we need to calculate the rolling average after removing the outliers, otherwise they will influence this feature. Since this feature needs to be calculated at &quot;runtime&quot; for inference it makes sense to do the same for training, allowing us to re-use the functionality and avoid skews.</p>
+<p>But in general this should be avoided if possible, as described in <a href="decouple_feature_creation.html">decoupling feature creation from training &amp; serving workflow</a>. And sometimes we could re-frame the feature to avoid having to compute it at &quot;runtime&quot;. In the example above, we could potentially use median instead of mean to remove the need for the user to provide the outlier days.</p>
+<p>The second part is feature pre-processing. Here we transform the features into a more desirable format. For example, we could transform a column of words to integers through tokenization, Z-normalize a numerical column etc. A common pattern is to include this logic in the model, see <a href="embedd_processing_logic_model.html">embed pre &amp; post processing logic in the model</a>.</p>
+<p>However, we might do the pre-processing in this task and then embed this into the model at a later time. The reason why we might want to do that is because this processing can be computationally heavy, especially if there is a large amount of data. This is actually what <a href="https://www.tensorflow.org/tfx/transform/get_started">Tensorflow transform</a> does.</p>
+<h2 id="train-model"><a class="header" href="#train-model">Train model</a></h2>
+<p>In this step we have assembled everything needed to start training our machine learning model. To start with, me might begin with hyperparameter tuning where we try to find a good combination of hyper-parameters (e.g. learning-rate, batch-size etc).</p>
+<p>Once those has been discovered we can do our final training with the &quot;best&quot; hyper-parameters we found.</p>
+<h2 id="model-analysis"><a class="header" href="#model-analysis">Model analysis</a></h2>
+<p>The final step in our workflow is the model analysis. Here we will inspect the models performance, such as accuracy, F1-score, root-mean squared error etc. Furthermore, it's common to check the performance on different slices of the data to find potential imbalances in performance between the slices.</p>
+<p>For example, let's say our data comes from users in two different regions: US and EU. Now it can be valuable to check what the accuracy of the model is for users in US and EU. If there is a large discrepancy between these two groups it can flag that we might have an issue with the model. As an example, the average accuracy is good for the two groups, but the model performs much worse for users in EU then in US. <a href="https://www.tensorflow.org/tfx/model_analysis/get_started">TensorFlow Model Analysis</a> is a tool that helps us do this model analysis.</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+
+                            <a rel="next" href="decouple_feature_creation.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+
+                    <a rel="next" href="decouple_feature_creation.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="elasticlunr.min.js"></script>
+        <script src="mark.min.js"></script>
+        <script src="searcher.js"></script>
+
+        <script src="clipboard.min.js"></script>
+        <script src="highlight.js"></script>
+        <script src="book.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="mermaid.min.js"></script>
+        <script src="mermaid-init.js"></script>
+
+
+    </div>
+    </body>
+</html>
