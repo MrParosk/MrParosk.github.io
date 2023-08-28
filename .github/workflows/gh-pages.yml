@@ -28,11 +28,6 @@ jobs:
           cargo install mdbook
           cargo install mdbook-mermaid
 
-      # - name: Setup mdBook
-      #   uses: peaceiris/actions-mdbook@v1
-      #   with:
-      #     mdbook-version: '0.4.30'
-
       - name: Build mdbook
         run: mdbook build
 

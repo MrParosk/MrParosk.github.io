@@ -1,22 +1,22 @@
 # Machine learning system design patterns
 
+This repository contains the material for the book: [Machine learning system design patterns](https://mrparosk.github.io/).
+
 ## Topics
 
 - Common training workflow structure
-- Decouple feature creation
-- Data validation
+- Decoupling feature creation from training & serving workflow
+- Data validation for inference
     - Batch inference
     - Online inference
-    - Train-serving skew
-    - Drifts
-- Online serving
-    - Embed pre & post-process in the model
-    - Separate services for pre-process, model inference and post-processing
-- Pre-processing logic
+    - Train-serving skew (TODO)
+    - Drifts (TODO)
+- Embed pre & post processing logic in the model
     - Embedded in the model object
-    - Separate task of the pipeline
+    - Separate task of the pipeline (batch-inference) (TODO)
+- Online serving structure
 - Model registry
-    - Handling dependencies
+    - Handling dependencies (TODO)
 
 ## Render the Markdown
 
@@ -27,7 +27,14 @@ cargo install mdbook
 cargo install mdbook-mermaid
 ```
 
-Then run:
+To build the book, run:
+
+```console
+mdbook build
+mdbook-mermaid install
+```
+
+To continually serve the book, run:
 
 ```console
 mdbook serve
