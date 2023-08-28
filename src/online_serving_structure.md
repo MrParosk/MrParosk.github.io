@@ -74,3 +74,12 @@ Lastly, most of these inference servers allows us to off-load models that haven'
 [Kserve](https://github.com/kserve/kserve) and [Seldon](https://github.com/SeldonIO/seldon-core) are examples of frameworks that uses this approach.
 
 ## When to use which approach?
+
+So now naturally the question arises: "Which of these approaches should I take?"
+
+I would choose "grouping all steps together" if the following condition were meet:
+
+- Number of served models are small for the application
+- The model doesn't require an accelerator, such as GPUs, TPUs etc
+
+Otherwise I would go "separate each step".
