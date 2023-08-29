@@ -30,8 +30,8 @@ cargo install mdbook-mermaid
 To build the book, run:
 
 ```console
-mdbook build
 mdbook-mermaid install
+mdbook build
 ```
 
 To continually serve the book, run:

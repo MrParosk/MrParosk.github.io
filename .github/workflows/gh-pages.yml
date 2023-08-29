@@ -28,11 +28,11 @@ jobs:
           cargo install mdbook
           cargo install mdbook-mermaid
 
+      - name: Install mermaid
+        run: mdbook-mermaid install
+
       - name: Build mdbook
         run: mdbook build
-
-      - name: Add mermaid to book directory
-        run: mdbook-mermaid install
 
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v3
