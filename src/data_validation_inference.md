@@ -40,22 +40,22 @@ Sometimes however the distributions are the same in the begging but drifts apart
 
 ## Metrics to determine distribution skew / drift
 
-In a supervised learning setting, we are typically trying to estimate $P(Y|X)$ where $X$ is our features and $Y$ is the target. That is, we are trying to estimate the probability distribution of the target variable, given our features. For a classification problem, we get the discrete probability distribution over the class given a feature input.
+In a supervised learning setting, we are typically trying to estimate \\( P(Y|X) \\) where \\( X \\) is our features and \\( Y \\) is the target. That is, we are trying to estimate the probability distribution of the target variable, given our features. For a classification problem, we get the discrete probability distribution over the class given a feature input.
 
 Using Bayes' theorem we get that:
 
-$P(Y|X) = \frac{P(X|Y) P(Y)}{P(X)}$
+\\[ P(Y|X) = \frac{P(X|Y) P(Y)}{P(X)} \\]
 
-Now, if any of the probabilities $P(Y|X)$, $P(X|Y)$, $P(Y)$ or $P(X)$ changes between training and serving the model performance usually degrades. Since $P(X|Y)$ is neither estimated during training or observed directly it's usually skipped for monitoring distribution drifts. So during serving we cam compare:
+Now, if any of the probabilities \\( P(Y|X) \\), \\( P(X|Y) \\), \\( P(Y) \\) or \\( P(X) \\) changes between training and serving the model performance usually degrades. Since \\( P(X|Y) \\) is neither estimated during training or observed directly it's usually skipped for monitoring distribution drifts. So during serving we cam compare:
 
-- $P(X)$, called covariance drift.
-- $P(Y)$, called label drift.
-- $P(Y|X)$, called concept drift.
+- \\( P(X) \\), called covariance drift.
+- \\( P(Y)\\) , called label drift.
+- \\( P(Y|X) \\), called concept drift.
 
-The difference in $P(X)$ between training and serving can always be compared since we observe the features before being send into our model.
+The difference in \\( P(X) \\) between training and serving can always be compared since we observe the features before being send into our model.
 
-$P(Y)$ and $P(Y|X)$ is a bit more tricky to observe potentially. This is because we need access to the ground truth of the target values, which is not always possible to obtain. This usually depends on the task at hand. Imaging the following two systems:
+\\( P(Y) \\) and \\( P(Y|X) \\) is a bit more tricky to observe potentially. This is because we need access to the ground truth of the target values, which is not always possible to obtain. This usually depends on the task at hand. Imaging the following two systems:
 
-A machine learning system that is trying to predict whether a user will click on an ad or not. Now in our internal system, we will most likely keep track of whether the user clicked on it or not. Therefore we can estimate $P(Y)$ and $P(Y|X)$ and compare it between training and serving.
+A machine learning system that is trying to predict whether a user will click on an ad or not. Now in our internal system, we will most likely keep track of whether the user clicked on it or not. Therefore we can estimate \\( P(Y) \\) and \\( P(Y|X) \\) and compare it between training and serving.
 
-A machine learning system trying to predict whether an image is a dog or a cat. Now unless the user gives us feedback on if the image was correctly labelled or not, we cannot determine the ground truth. Therefore, estimating $P(Y)$ and $P(Y|X)$ during serving will be impossible, unless we label the incoming images ourself.
+A machine learning system trying to predict whether an image is a dog or a cat. Now unless the user gives us feedback on if the image was correctly labelled or not, we cannot determine the ground truth. Therefore, estimating \\( P(Y) \\) and \\( P(Y|X) \\) during serving will be impossible, unless we label the incoming images ourself.
