@@ -91,7 +91,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded affix "><a href="introduction.html">Introduction</a></li><li class="chapter-item expanded "><a href="training_workflow.html"><strong aria-hidden="true">1.</strong> Training workflow</a></li><li class="chapter-item expanded "><a href="decouple_feature_creation.html"><strong aria-hidden="true">2.</strong> Decoupling feature creation from workflows</a></li><li class="chapter-item expanded "><a href="embedd_processing_logic_model.html"><strong aria-hidden="true">3.</strong> Embed pre & post processing logic in the model</a></li><li class="chapter-item expanded "><a href="data_validation_inference.html"><strong aria-hidden="true">4.</strong> Data validation for inference</a></li><li class="chapter-item expanded "><a href="online_serving_structure.html"><strong aria-hidden="true">5.</strong> Online serving structure</a></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="introduction.html">Introduction</a></li><li class="chapter-item expanded "><a href="training_workflow.html"><strong aria-hidden="true">1.</strong> Training workflow</a></li><li class="chapter-item expanded "><a href="decouple_feature_creation.html"><strong aria-hidden="true">2.</strong> Decoupling feature creation from workflows</a></li><li class="chapter-item expanded "><a href="embedd_processing_logic_model.html"><strong aria-hidden="true">3.</strong> Embed pre & post processing logic in the model</a></li><li class="chapter-item expanded "><a href="model_registry.html"><strong aria-hidden="true">4.</strong> Model registry</a></li><li class="chapter-item expanded "><a href="online_serving_structure.html"><strong aria-hidden="true">5.</strong> Online serving structure</a></li><li class="chapter-item expanded "><a href="data_validation_inference.html"><strong aria-hidden="true">6.</strong> Data validation for inference</a></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle">
                 <div class="sidebar-resize-indicator"></div>
@@ -263,42 +263,40 @@ with open(&quot;model.pkl&quot;,&quot;wb&quot;) as fp:
 <p>Frameworks such as Tensorflow and PyTorch also have similar support for this pattern. In this case, we will embed the pre-processing steps into the computational graph. Then when we save the model these steps will be included automatically, since it is a part of computational graph.</p>
 <p>When we have a large amount of data for training it can be a good idea to do the pre-processing outside of the model (preferably with a distributed computing framework) and later embed the pre-processing into the model object before we save it for serving. This is actually what <a href="https://www.tensorflow.org/tfx/transform/get_started">Tensorflow transform</a> does. Here the pre-processing step is done with Apache Beam and once we have finished training we embed these steps into the computational graph which gets exported.</p>
 <p>This pattern can also be applied to the post-processing step. For example, imagine that we want to make sure our predictions are non-negative. We could add a post-processing step where we take the maximum of our predictions and 0. To make sure that this gets applied in a similar fashion in both training and serving we should embed this step into our model object, as we did for pre-processing.</p>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="data-validation-for-inference"><a class="header" href="#data-validation-for-inference">Data validation for inference</a></h1>
-<p>During our training workflow we produce the data validation artifact which describes the data schema and the dataset distribution, see <a href="training_workflow.html">training workflow</a>. Now during serving we want to validate that our serving data has the same data schema and comes from a similar distribution to our training data in order to avoid training-serving skew. Comparing distributions can be done with measures such as <a href="https://en.wikipedia.org/wiki/Jensen%E2%80%93Shannon_divergence">Jensen–Shannon divergence</a>.</p>
-<p>Below we describe how to do this validation for batch &amp; online inference.</p>
-<h2 id="batch-inference"><a class="header" href="#batch-inference">Batch inference</a></h2>
-<p>A typical batch-inference workflow has the following structure:</p>
-<pre class="mermaid">graph LR
-    A[Data ingestion] --&gt; B[Data validation]
-    B --&gt; C[Model inference]
-</pre>
-<p>In the data validation task we will perform the validation. That is, compare the data schema for the ingested data for inference and the produced data schema during training. We will also compare the data distribution between the two datasets. If the schemas &amp; data distributions are the same we will continue to the model inference task, otherwise we might fail the workflow and/or notify the developers that something is wrong.</p>
-<h2 id="online-inference"><a class="header" href="#online-inference">Online inference</a></h2>
-<p>Doing the data validation for online inference is a bit trickier. First of, most metrics to detect distribution differences requires a sizeable amount of data. For online inference we might only have at hand one or a couple of data-points (i.e. batched requests) at hand and computing this difference is not meaningful. Also doing this data validation would introduce more latency to our system since it's an additional step we need to perform.</p>
-<p>So how can we solve this? One approach is take the requests we get in the online inference service and forward them to an additional service, called data validation service. Here we will store the requests and once we have reached an adequate amount of data we will trigger a batch data validation job where we compare the data schema and distribution for these requests with the ones produced by the training workflow. If the schema &amp; data distribution are different, we will notify the developers that something is wrong. We could also run this as a cron job such that we do the data validation on new requests every X hours or days.</p>
-<p>Furthermore, if the amount of requests is large we could sample these requests randomly such that we only do the data validation on a percentage of the requests.</p>
-<p>Below is an overview of this architecture:</p>
-<pre class="mermaid">graph LR
-    A[User] &lt;--&gt; B[Online inference service]
-    B --&gt; C[Data validation service]
-</pre>
-<h2 id="distribution-skew-versus-drift"><a class="header" href="#distribution-skew-versus-drift">Distribution skew versus drift</a></h2>
-<p>Training-serving skew occurs when the data distributions for training and serving is different from the beginning. As an example, imaging that one of our input feature is the price of a product. During training, we have assumed that the price is in Euros. However, during serving we accidentally input prices in USD, which causes the price feature to have different distributions between training and serving.</p>
-<p>Sometimes however the distributions are the same in the begging but drifts apart over time. Imagine the price feature described above. Now instead assume that the price is in Euros for both training and serving. But due to inflation, the prices increases over time. Therefore, the distributions drifts apart, causing model performance to degrade. This is called a distribution drift.</p>
-<h2 id="metrics-to-determine-distribution-skew--drift"><a class="header" href="#metrics-to-determine-distribution-skew--drift">Metrics to determine distribution skew / drift</a></h2>
-<p>In a supervised learning setting, we are typically trying to estimate \( P(Y|X) \) where \( X \) is our features and \( Y \) is the target. That is, we are trying to estimate the probability distribution of the target variable, given our features. For a classification problem, we get the discrete probability distribution over the class given a feature input.</p>
-<p>Using Bayes' theorem we get that:</p>
-<p>\[ P(Y|X) = \frac{P(X|Y) P(Y)}{P(X)} \]</p>
-<p>Now, if any of the probabilities \( P(Y|X) \), \( P(X|Y) \), \( P(Y) \) or \( P(X) \) changes between training and serving the model performance usually degrades. Since \( P(X|Y) \) is neither estimated during training or observed directly it's usually skipped for monitoring distribution drifts. So during serving we cam compare:</p>
-<ul>
-<li>\( P(X) \), called covariance drift.</li>
-<li>\( P(Y)\) , called label drift.</li>
-<li>\( P(Y|X) \), called concept drift.</li>
-</ul>
-<p>The difference in \( P(X) \) between training and serving can always be compared since we observe the features before being send into our model.</p>
-<p>\( P(Y) \) and \( P(Y|X) \) is a bit more tricky to observe potentially. This is because we need access to the ground truth of the target values, which is not always possible to obtain. This usually depends on the task at hand. Imaging the following two systems:</p>
-<p>A machine learning system that is trying to predict whether a user will click on an ad or not. Now in our internal system, we will most likely keep track of whether the user clicked on it or not. Therefore we can estimate \( P(Y) \) and \( P(Y|X) \) and compare it between training and serving.</p>
-<p>A machine learning system trying to predict whether an image is a dog or a cat. Now unless the user gives us feedback on if the image was correctly labelled or not, we cannot determine the ground truth. Therefore, estimating \( P(Y) \) and \( P(Y|X) \) during serving will be impossible, unless we label the incoming images ourself.</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="model-registry"><a class="header" href="#model-registry">Model registry</a></h1>
+<p>A central part of any machine learning infrastructure is the model registry. The registry is mainly responsible to keep track of trained models and their versions. There are principally two parts to keep track of:</p>
+<ol>
+  <li>Model binary</li>
+  <li>Dependencies for the model</li>
+</ol>
+<p>The model binary is a serialized model produced during the training phase. It can be a pickled scikit-learn model, tensorflow model of SavedModel format etc. These can be saved in object storage, like s3 or gcs.</p>
+<p>The second part is the dependency needed to load and serve the model. For example, if we trained our scikit-learn model with version 1.3.2 we should use the same version during inference as well. The reason for using the same version for training and inference are twofold. Firstly, to avoid incompatibility between versions. For example, sometimes the internal implementation of the same same model (e.g. LinearRegression) changes between versions which cause our model to not be load-able. Secondly is the potential of updated implementation of certain calculation. For example, imaging that the library maintainer for scikit-learn updated the calculation of sample mean which we use in our model. Now the mean calculation is different between the training and serving, causing train-serving skew.</p>
+<p>Now the question arises of how to manage these dependencies. There are two common ways:</p>
+<ol>
+  <li>Docker container</li>
+  <li>Pinned dependencies</li>
+</ol>
+<p>With the docker container approach, we define a dockerfile which specify certain library versions needed to training and serving our model. This container is then built and uploaded to our docker registry. In our model registry, we add a reference to this specific build, ensuring that the same library versions are installed during training and serving. This approach is used in <a href="https://cloud.google.com/vertex-ai/docs/training/containers-overview">VertexAI's model registry</a>.</p>
+<p>Usually you will have certain libraries that should only be installed for training and vise-versa for serving. This can be achieved with a multi-staged build:</p>
+<pre><code class="language-docker">FROM python:3.12-bullseye AS base
+
+# Install dependencies used in both training &amp; serving
+pip install scikit-learn==1.3.2
+
+FROM base AS train
+
+# Install dependencies used only in training, like a hyper-parameter tuning library
+pip install hyperopt==0.2.7
+
+FROM base AS serve
+
+# Install dependencies used only in serving, like a rest web framework
+pip install fastapi==0.109.0
+</code></pre>
+<p>The second approach is simply pinning the dependencies in text-format, like YAML. These versions are created during our training process, ensuring that we use the same version during training and serving. This approach is supported in <a href="https://mlflow.org/docs/latest/model-registry.html#concepts">MLFlow</a>:</p>
+<pre><code class="language-yaml">dependencies:
+  - scikit-learn==1.3.2
+</code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="online-serving-structure"><a class="header" href="#online-serving-structure">Online serving structure</a></h1>
 <p>When deploying our machine learning model for online inference we typically divide into two parts, our backend service and our machine learning inference service. Below is a diagram of the high-level overview of this setup:</p>
 <pre class="mermaid">graph LR
@@ -357,6 +355,42 @@ with open(&quot;model.pkl&quot;,&quot;wb&quot;) as fp:
 <li>The model doesn't require an accelerator, such as GPUs, TPUs etc</li>
 </ul>
 <p>Otherwise I would go &quot;separate each step&quot;.</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="data-validation-for-inference"><a class="header" href="#data-validation-for-inference">Data validation for inference</a></h1>
+<p>During our training workflow we produce the data validation artifact which describes the data schema and the dataset distribution, see <a href="training_workflow.html">training workflow</a>. Now during serving we want to validate that our serving data has the same data schema and comes from a similar distribution to our training data in order to avoid training-serving skew. Comparing distributions can be done with measures such as <a href="https://en.wikipedia.org/wiki/Jensen%E2%80%93Shannon_divergence">Jensen–Shannon divergence</a>.</p>
+<p>Below we describe how to do this validation for batch &amp; online inference.</p>
+<h2 id="batch-inference"><a class="header" href="#batch-inference">Batch inference</a></h2>
+<p>A typical batch-inference workflow has the following structure:</p>
+<pre class="mermaid">graph LR
+    A[Data ingestion] --&gt; B[Data validation]
+    B --&gt; C[Model inference]
+</pre>
+<p>In the data validation task we will perform the validation. That is, compare the data schema for the ingested data for inference and the produced data schema during training. We will also compare the data distribution between the two datasets. If the schemas &amp; data distributions are the same we will continue to the model inference task, otherwise we might fail the workflow and/or notify the developers that something is wrong.</p>
+<h2 id="online-inference"><a class="header" href="#online-inference">Online inference</a></h2>
+<p>Doing the data validation for online inference is a bit trickier. First of, most metrics to detect distribution differences requires a sizeable amount of data. For online inference we might only have at hand one or a couple of data-points (i.e. batched requests) at hand and computing this difference is not meaningful. Also doing this data validation would introduce more latency to our system since it's an additional step we need to perform.</p>
+<p>So how can we solve this? One approach is take the requests we get in the online inference service and forward them to an additional service, called data validation service. Here we will store the requests and once we have reached an adequate amount of data we will trigger a batch data validation job where we compare the data schema and distribution for these requests with the ones produced by the training workflow. If the schema &amp; data distribution are different, we will notify the developers that something is wrong. We could also run this as a cron job such that we do the data validation on new requests every X hours or days.</p>
+<p>Furthermore, if the amount of requests is large we could sample these requests randomly such that we only do the data validation on a percentage of the requests.</p>
+<p>Below is an overview of this architecture:</p>
+<pre class="mermaid">graph LR
+    A[User] &lt;--&gt; B[Online inference service]
+    B --&gt; C[Data validation service]
+</pre>
+<h2 id="distribution-skew-versus-drift"><a class="header" href="#distribution-skew-versus-drift">Distribution skew versus drift</a></h2>
+<p>Training-serving skew occurs when the data distributions for training and serving is different from the beginning. As an example, imaging that one of our input feature is the price of a product. During training, we have assumed that the price is in Euros. However, during serving we accidentally input prices in USD, which causes the price feature to have different distributions between training and serving.</p>
+<p>Sometimes however the distributions are the same in the begging but drifts apart over time. Imagine the price feature described above. Now instead assume that the price is in Euros for both training and serving. But due to inflation, the prices increases over time. Therefore, the distributions drifts apart, causing model performance to degrade. This is called a distribution drift.</p>
+<h2 id="metrics-to-determine-distribution-skew--drift"><a class="header" href="#metrics-to-determine-distribution-skew--drift">Metrics to determine distribution skew / drift</a></h2>
+<p>In a supervised learning setting, we are typically trying to estimate \( P(Y|X) \) where \( X \) is our features and \( Y \) is the target. That is, we are trying to estimate the probability distribution of the target variable, given our features. For a classification problem, we get the discrete probability distribution over the class given a feature input.</p>
+<p>Using Bayes' theorem we get that:</p>
+<p>\[ P(Y|X) = \frac{P(X|Y) P(Y)}{P(X)} \]</p>
+<p>Now, if any of the probabilities \( P(Y|X) \), \( P(X|Y) \), \( P(Y) \) or \( P(X) \) changes between training and serving the model performance usually degrades. Since \( P(X|Y) \) is neither estimated during training or observed directly it's usually skipped for monitoring distribution drifts. So during serving we cam compare:</p>
+<ul>
+<li>\( P(X) \), called covariance drift.</li>
+<li>\( P(Y)\) , called label drift.</li>
+<li>\( P(Y|X) \), called concept drift.</li>
+</ul>
+<p>The difference in \( P(X) \) between training and serving can always be compared since we observe the features before being send into our model.</p>
+<p>\( P(Y) \) and \( P(Y|X) \) is a bit more tricky to observe potentially. This is because we need access to the ground truth of the target values, which is not always possible to obtain. This usually depends on the task at hand. Imaging the following two systems:</p>
+<p>A machine learning system that is trying to predict whether a user will click on an ad or not. Now in our internal system, we will most likely keep track of whether the user clicked on it or not. Therefore we can estimate \( P(Y) \) and \( P(Y|X) \) and compare it between training and serving.</p>
+<p>A machine learning system trying to predict whether an image is a dog or a cat. Now unless the user gives us feedback on if the image was correctly labelled or not, we cannot determine the ground truth. Therefore, estimating \( P(Y) \) and \( P(Y|X) \) during serving will be impossible, unless we label the incoming images ourself.</p>
 
                     </main>
 
