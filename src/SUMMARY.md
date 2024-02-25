@@ -8,3 +8,4 @@
 - [Model registry](model_registry.md)
 - [Online serving structure](online_serving_structure.md)
 - [Data validation for inference](data_validation_inference.md)
+- [Infrastructure setup](infrastructure.md)

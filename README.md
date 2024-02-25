@@ -16,7 +16,7 @@ This repository contains the material for the book: [Machine learning system des
     - Online inference
     - Distribution skew versus drift
     - Metrics to determine distribution skew / drift
-- Infrastructure structure
+- Infrastructure setup
     - Sandbox, staging & production (TODO)
     - Promoting between staging & production (TODO)
 
