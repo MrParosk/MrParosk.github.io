@@ -90,7 +90,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded affix "><a href="introduction.html">Introduction</a></li><li class="chapter-item expanded "><a href="training_workflow.html"><strong aria-hidden="true">1.</strong> Training workflow</a></li><li class="chapter-item expanded "><a href="decouple_feature_creation.html"><strong aria-hidden="true">2.</strong> Decoupling feature creation from workflows</a></li><li class="chapter-item expanded "><a href="embedd_processing_logic_model.html"><strong aria-hidden="true">3.</strong> Embed pre & post processing logic in the model</a></li><li class="chapter-item expanded "><a href="model_registry.html"><strong aria-hidden="true">4.</strong> Model registry</a></li><li class="chapter-item expanded "><a href="online_serving_structure.html" class="active"><strong aria-hidden="true">5.</strong> Online serving structure</a></li><li class="chapter-item expanded "><a href="data_validation_inference.html"><strong aria-hidden="true">6.</strong> Data validation for inference</a></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="introduction.html">Introduction</a></li><li class="chapter-item expanded "><a href="training_workflow.html"><strong aria-hidden="true">1.</strong> Training workflow</a></li><li class="chapter-item expanded "><a href="decouple_feature_creation.html"><strong aria-hidden="true">2.</strong> Decoupling feature creation from workflows</a></li><li class="chapter-item expanded "><a href="embedd_processing_logic_model.html"><strong aria-hidden="true">3.</strong> Embed pre & post processing logic in the model</a></li><li class="chapter-item expanded "><a href="model_registry.html"><strong aria-hidden="true">4.</strong> Model registry</a></li><li class="chapter-item expanded "><a href="online_serving_structure.html" class="active"><strong aria-hidden="true">5.</strong> Online serving structure</a></li><li class="chapter-item expanded "><a href="data_validation_inference.html"><strong aria-hidden="true">6.</strong> Data validation for inference</a></li><li class="chapter-item expanded "><a href="infrastructure.html"><strong aria-hidden="true">7.</strong> Infrastructure setup</a></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle">
                 <div class="sidebar-resize-indicator"></div>
@@ -181,7 +181,7 @@
     A[User] &lt;--&gt; B[Backend service]
     B &lt;--&gt; C[Machine learning inference service]
 </pre>
-<p>Our backend service is responsible authenticate the request, fetching necessary data from the feature store etc. The machine learning inference service will be tasked with doing the actual inference of the machine learning model. It can be broken up into three parts; pre-process, predict and post-process. </p>
+<p>Our backend service is responsible authenticate the request, fetching necessary data from the feature store etc. The machine learning inference service will be tasked with doing the actual inference of the machine learning model. It can be broken up into three parts; pre-process, predict and post-process.</p>
 <p>The pre-process step include steps like validating that the required data is available for doing the request, that the data types are correct etc. We try to avoid including model specific pre-processing step here, see <a href="embedd_processing_logic_model.html">Embed pre &amp; post processing logic in the model</a> for clarification.</p>
 <p>The predict part is where we do the actual model inference. We send in the data produces from pre-process step into the model to get the predictions.</p>
 <p>Lastly, we have the post-process step. Here we transform the outputted predictions into a format which can be used by the system as a whole. For example, we might transformed predicted class-ids into class names, such as 0 into the name 'Dog'.</p>
@@ -220,19 +220,19 @@
     C --&gt; D[Post-process service]
     D --&gt; A
 </pre>
-<p>Now you might ask &quot;why would we want to do this&quot;? To answer that question, lets imagine the following case-study:</p>
+<p>Now you might ask "why would we want to do this"? To answer that question, lets imagine the following case-study:</p>
 <p>Let's say we have a large convolutional neural network that we want to deploy. To speed up the inference part we decide to run the model on a GPU. Furthermore, our pre-processing step is quite time-consuming, e.g. we want crop the image and convert from <a href="https://en.wikipedia.org/wiki/RGB_color_model">RGB</a> to <a href="https://en.wikipedia.org/wiki/HSL_and_HSV">HSV</a>. Moreover, let's say we are getting an increase in request so we need to scale-up this solution. If all the steps are grouped together, we need deploy additional replicas of the same service, regardless of which part is the bottleneck. Furthermore, during the pre &amp; post-processing step our GPU is idle which is wasteful since GPU's are expensive. Now imagine these were separate steps, then we could scale them separately depending on which part was the bottleneck.</p>
 <p>Another advantage of this separation is that we can co-locate our models on a model inference server, such as <a href="https://github.com/triton-inference-server/server">triton-inference-server</a> and <a href="https://github.com/tensorflow/serving">tensorflow serving</a>. Now we could load multiple replicas of a model and/or multiple models. This is advantages since it allow us to utilize our GPU better.</p>
 <p>Lastly, most of these inference servers allows us to off-load models that haven't been used in a while, and load it once a request comes for that specific model (of course with a latency cost). This feature can be helpful if we need to serve a large number of models. For example, imagine that we have a model that forecasts how much we will sell of an item in a given country. Through our experiments we have determined that having one model per country performed better then a global one. Furthermore, assume that we operate in many different countries. If we have included all steps in one service, we would have to deploy one of these services for each country (and potentially more if the number of requests are large). However when the steps are separated, we could co-locate all of the models on an inference server, potentially getting away with fewer deployments.</p>
 <p><a href="https://github.com/kserve/kserve">Kserve</a> and <a href="https://github.com/SeldonIO/seldon-core">Seldon</a> are examples of frameworks that uses this approach.</p>
 <h2 id="when-to-use-which-approach"><a class="header" href="#when-to-use-which-approach">When to use which approach?</a></h2>
-<p>So now naturally the question arises: &quot;Which of these approaches should I take?&quot;</p>
-<p>I would choose &quot;grouping all steps together&quot; if the following condition were meet:</p>
+<p>So now naturally the question arises: "Which of these approaches should I take?"</p>
+<p>I would choose "grouping all steps together" if the following condition were meet:</p>
 <ul>
 <li>Number of served models are small for the application</li>
 <li>The model doesn't require an accelerator, such as GPUs, TPUs etc</li>
 </ul>
-<p>Otherwise I would go &quot;separate each step&quot;.</p>
+<p>Otherwise I would go "separate each step".</p>
 
                     </main>
 

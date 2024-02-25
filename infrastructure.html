@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>Decoupling feature creation from workflows - Machine learning system design patterns</title>
+        <title>Infrastructure setup - Machine learning system design patterns</title>
 
 
         <!-- Custom HTML head -->
@@ -90,7 +90,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded affix "><a href="introduction.html">Introduction</a></li><li class="chapter-item expanded "><a href="training_workflow.html"><strong aria-hidden="true">1.</strong> Training workflow</a></li><li class="chapter-item expanded "><a href="decouple_feature_creation.html" class="active"><strong aria-hidden="true">2.</strong> Decoupling feature creation from workflows</a></li><li class="chapter-item expanded "><a href="embedd_processing_logic_model.html"><strong aria-hidden="true">3.</strong> Embed pre & post processing logic in the model</a></li><li class="chapter-item expanded "><a href="model_registry.html"><strong aria-hidden="true">4.</strong> Model registry</a></li><li class="chapter-item expanded "><a href="online_serving_structure.html"><strong aria-hidden="true">5.</strong> Online serving structure</a></li><li class="chapter-item expanded "><a href="data_validation_inference.html"><strong aria-hidden="true">6.</strong> Data validation for inference</a></li><li class="chapter-item expanded "><a href="infrastructure.html"><strong aria-hidden="true">7.</strong> Infrastructure setup</a></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="introduction.html">Introduction</a></li><li class="chapter-item expanded "><a href="training_workflow.html"><strong aria-hidden="true">1.</strong> Training workflow</a></li><li class="chapter-item expanded "><a href="decouple_feature_creation.html"><strong aria-hidden="true">2.</strong> Decoupling feature creation from workflows</a></li><li class="chapter-item expanded "><a href="embedd_processing_logic_model.html"><strong aria-hidden="true">3.</strong> Embed pre & post processing logic in the model</a></li><li class="chapter-item expanded "><a href="model_registry.html"><strong aria-hidden="true">4.</strong> Model registry</a></li><li class="chapter-item expanded "><a href="online_serving_structure.html"><strong aria-hidden="true">5.</strong> Online serving structure</a></li><li class="chapter-item expanded "><a href="data_validation_inference.html"><strong aria-hidden="true">6.</strong> Data validation for inference</a></li><li class="chapter-item expanded "><a href="infrastructure.html" class="active"><strong aria-hidden="true">7.</strong> Infrastructure setup</a></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle">
                 <div class="sidebar-resize-indicator"></div>
@@ -175,35 +175,43 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1 id="decoupling-feature-creation-from-training--serving-workflow"><a class="header" href="#decoupling-feature-creation-from-training--serving-workflow">Decoupling feature creation from training &amp; serving workflow</a></h1>
-<p>This design pattern aims to decouple the feature creation from the training and serving workflows.</p>
-<p>It allows for separation of concerns; it let people with expertise in data engineering to focus creating scalable and robust feature creation pipelines while experts in model builders can focus on the modelling parts.</p>
-<p>Decrease the risk of training-serving skews. A common cause of bugs in machine learning systems are difference in data processing between training and serving.</p>
-<p>For example, imagine that we are building a machine learning system for recommending products to users. During our modelling phase we have discovered that the price is an important feature. However, accidentally in our training pipeline we have defined the price in American dollars (USD), while in the serving workflow we have defined it in the native currency (i.e. for Swedish users we define it in Swedish Krona). This would not necessarily break our system but our predictions would most be worse then if we had implemented both in the same currency, e.g. USD.</p>
-<p>This might seem like a obvious example, but these types of issues crop up all the time. I have seen that simply unifying the feature creation between training and serving workflows substantially increase the accuracy of system.</p>
-<p>A common term within machine learning systems are <a href="https://www.tecton.ai/blog/what-is-a-feature-store/">feature stores</a>. Does that mean we always need to include a feature store in our systems? Not necessarily.</p>
-<p>For example, imagine that we have the recommendation problem where we will pre-compute the recommendation before hand, i.e. doing batch inference a head of time and store the predictions in a database. When we want to serve these recommendations, we simply do a lookup in our database. Furthermore, assume that the cardinality of users &amp; products are not too big. Then for our feature creation we could simply store these features in a data warehouse / datalake, where each row contains all the feature for users, articles, the the combination of feature &amp; users.</p>
-<p>Below is an example table with this structure:</p>
-<div class="table-wrapper"><table><thead><tr><th style="text-align: center">article_id</th><th style="text-align: center">user_id</th><th style="text-align: center">article_type</th><th style="text-align: center">user_previous_purchases</th><th style="text-align: center">user_article_affinity</th></tr></thead><tbody>
-<tr><td style="text-align: center">1582</td><td style="text-align: center">5768</td><td style="text-align: center">electronics</td><td style="text-align: center">192.0</td><td style="text-align: center">0.8</td></tr>
-<tr><td style="text-align: center">1582</td><td style="text-align: center">9922</td><td style="text-align: center">electronics</td><td style="text-align: center">29.0</td><td style="text-align: center">0.3</td></tr>
-<tr><td style="text-align: center">1988</td><td style="text-align: center">9922</td><td style="text-align: center">clothes</td><td style="text-align: center">29.0</td><td style="text-align: center">0.1</td></tr>
-</tbody></table>
-</div>
-<p>Whether we should implement this ourself like above or use an external platform like <a href="https://docs.feast.dev/">Feast</a> is context dependent. The above approach is good since we don't have to learn a new tool and integrate with it. We can simply use our preferred data warehouse / datalake solution.</p>
-<p>However, if we instead would like to do online inference the approach above has most likely too high latency for feature retrieval. To improve the latency of retrieval, we could store the features for inference in a key-value store, like Redis. However, adding these capabilities would require a lot of engineering efforts and simply using a third-party system like Feast is most likely easier.</p>
+                        <h1 id="infrastructure-setup"><a class="header" href="#infrastructure-setup">Infrastructure setup</a></h1>
+<h2 id="different-environments"><a class="header" href="#different-environments">Different environments</a></h2>
+<h2 id="promotion-to-production"><a class="header" href="#promotion-to-production">Promotion to production</a></h2>
+<pre class="mermaid">graph TB
+    subgraph Production
+    H[Training pipeline] --&gt; G[Model registry]
+    G --&gt; J[Model endpoint]
+    end
+    subgraph Staging
+    D[Training pipeline] --&gt; E[Model registry]
+    E --&gt; F[Test endpoint]
+    end
+    subgraph Sandbox
+    A[Training pipeline] --&gt; B[Model registry]
+    end
+</pre>
+<pre class="mermaid">graph TD
+    subgraph Staging
+    D[Training pipeline] --&gt; E[Model registry]
+    E --&gt; F[Test endpoint]
+    end
+    subgraph Production
+    E --&gt; H[Model endpoint]
+    end
+    subgraph Sandbox
+    A[Training pipeline] --&gt; B[Model registry]
+    end
+</pre>
 
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
-                            <a rel="prev" href="training_workflow.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                            <a rel="prev" href="data_validation_inference.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                                 <i class="fa fa-angle-left"></i>
                             </a>
 
-                            <a rel="next prefetch" href="embedd_processing_logic_model.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
-                                <i class="fa fa-angle-right"></i>
-                            </a>
 
                         <div style="clear: both"></div>
                     </nav>
@@ -211,13 +219,10 @@
             </div>
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
-                    <a rel="prev" href="training_workflow.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                    <a rel="prev" href="data_validation_inference.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                         <i class="fa fa-angle-left"></i>
                     </a>
 
-                    <a rel="next prefetch" href="embedd_processing_logic_model.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
-                        <i class="fa fa-angle-right"></i>
-                    </a>
             </nav>
 
         </div>
