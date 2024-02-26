@@ -10,7 +10,11 @@ This repository contains the material for the book: [Machine learning system des
     - Embedded in the model object
     - Separate task of the pipeline (batch-inference) (TODO)
 - Model registry
-- Online serving structure
+- Serving patterns
+    - Batch prediction (TODO)
+    - Online serving (TODO)
+        - Online serving structure
+    - Event-based serving (TODO)
 - Data validation for inference
     - Batch inference
     - Online inference
