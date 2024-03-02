@@ -421,7 +421,7 @@ pip install fastapi==0.109.0
     A[Training pipeline] --&gt; B[Model registry]
     end
 </pre>
-<p>The drawback of this approach is that we need to train the model twice, once in staging and once in production. If the training job is computationally heavy this can become expensive. The advantage is that we have two completely separate environment, making it accidental changes less likely.</p>
+<p>The drawback of this approach is that we need to train the model twice, once in staging and once in production. If the training job is computationally heavy this can become expensive. The advantage is that we have two completely separate environment, making accidental changes less likely.</p>
 <h3 id="transit-model-from-staging-to-production"><a class="header" href="#transit-model-from-staging-to-production">Transit model from staging to production</a></h3>
 <p>The other approach is to train the model in staging. Furthermore, we will validate that the model works as expected in staging. Once we are confident that the model is works as we want, we can transfer the model into the production environment (with the corresponding serving code). Once in production, it will be used for serving.</p>
 <pre class="mermaid">graph TD
