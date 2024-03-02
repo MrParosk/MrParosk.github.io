@@ -20,7 +20,7 @@ The staging environment is simply used to verify changes before they go into pro
 
 Production is used to serve actual users. For example, let say you have a model that serves recommendation for a video sharing site. When a user opens the app and sees video recommendations these comes from our production environments.
 
-Before changes goes into production we should be sure that they work, which we should test in staging. 
+Before changes goes into production we should be sure that they work, which we should test in staging.
 
 ## Promotion to production
 
@@ -47,7 +47,7 @@ graph TB
     end
 ```
 
-The drawback of this approach is that we need to train the model twice, once in staging and once in production. If the training job is computationally heavy this can become expensive. The advantage is that we have two completely separate environment, making it accidental changes less likely.
+The drawback of this approach is that we need to train the model twice, once in staging and once in production. If the training job is computationally heavy this can become expensive. The advantage is that we have two completely separate environment, making accidental changes less likely.
 
 ### Transit model from staging to production
 

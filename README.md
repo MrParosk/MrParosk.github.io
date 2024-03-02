@@ -21,8 +21,8 @@ This repository contains the material for the book: [Machine learning system des
     - Distribution skew versus drift
     - Metrics to determine distribution skew / drift
 - Infrastructure setup
-    - Sandbox, staging & production (TODO)
-    - Promoting between staging & production (TODO)
+    - Sandbox, staging & production
+    - Promoting between staging & production
 
 ## Render the Markdown
 
