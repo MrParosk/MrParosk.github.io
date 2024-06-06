@@ -47,7 +47,9 @@ dependencies:
   - scikit-learn==1.3.2
 ```
 
-Lastly, we could also export the model to a self-contained model format. When exporting a model to this format, we should be able to set a version for the different operations (e.g. batch norm) used within the model. This ensures that the computations are the same for training & serving. One example of this format is [ONNX](https://github.com/onnx/onnx). With ONNX we can simply set the target version when exporting a model. This version will be saved within the model binary. When loading the model for inference, the inference runtime will make sure that appropriate operations are used during inference calls. 
+Lastly, we could also export the model to a self-contained model format. When exporting a model to this format, we should be able to set a version for the different operations (e.g. batch norm) used within the model. This ensures that the computations are the same for training & serving.
+
+One example of this format is [ONNX](https://github.com/onnx/onnx). With ONNX we can simply set the target version when exporting a model. This version will be saved within the model binary. When loading the model for inference, the inference runtime will make sure that appropriate operations are used during inference calls. 
 
 You can convert models from PyTorch, Tensorflow, sklearn and more easily with provided [converts](https://github.com/onnx/tutorials?tab=readme-ov-file#converting-to-onnx-format). Below is an example of exporting a sklearn model to ONNX:
 
