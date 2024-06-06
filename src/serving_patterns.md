@@ -2,7 +2,6 @@
 
 Once a model is trained we want to make it available for serving. There are typically three common ways of doing it:
 
-
 <ol>
   <li>Batch serving</li>
   <li>Online serving</li>
