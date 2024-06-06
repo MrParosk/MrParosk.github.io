@@ -90,7 +90,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded affix "><a href="introduction.html">Introduction</a></li><li class="chapter-item expanded "><a href="training_workflow.html"><strong aria-hidden="true">1.</strong> Training workflow</a></li><li class="chapter-item expanded "><a href="decouple_feature_creation.html"><strong aria-hidden="true">2.</strong> Decoupling feature creation from workflows</a></li><li class="chapter-item expanded "><a href="embedd_processing_logic_model.html"><strong aria-hidden="true">3.</strong> Embed pre & post processing logic in the model</a></li><li class="chapter-item expanded "><a href="model_registry.html" class="active"><strong aria-hidden="true">4.</strong> Model registry</a></li><li class="chapter-item expanded "><a href="online_serving_structure.html"><strong aria-hidden="true">5.</strong> Serving patterns</a></li><li class="chapter-item expanded "><a href="online_serving_structure.html"><strong aria-hidden="true">6.</strong> Online serving structure</a></li><li class="chapter-item expanded "><a href="data_validation_inference.html"><strong aria-hidden="true">7.</strong> Data validation for inference</a></li><li class="chapter-item expanded "><a href="infrastructure.html"><strong aria-hidden="true">8.</strong> Infrastructure setup</a></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="introduction.html">Introduction</a></li><li class="chapter-item expanded "><a href="training_workflow.html"><strong aria-hidden="true">1.</strong> Training workflow</a></li><li class="chapter-item expanded "><a href="decouple_feature_creation.html"><strong aria-hidden="true">2.</strong> Decoupling feature creation from workflows</a></li><li class="chapter-item expanded "><a href="embedd_processing_logic_model.html"><strong aria-hidden="true">3.</strong> Embed pre & post processing logic in the model</a></li><li class="chapter-item expanded "><a href="model_registry.html" class="active"><strong aria-hidden="true">4.</strong> Model registry</a></li><li class="chapter-item expanded "><a href="serving_patterns.html"><strong aria-hidden="true">5.</strong> Serving patterns</a></li><li class="chapter-item expanded "><a href="online_serving_structure.html"><strong aria-hidden="true">6.</strong> Online serving structure</a></li><li class="chapter-item expanded "><a href="data_validation_inference.html"><strong aria-hidden="true">7.</strong> Data validation for inference</a></li><li class="chapter-item expanded "><a href="infrastructure.html"><strong aria-hidden="true">8.</strong> Infrastructure setup</a></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle">
                 <div class="sidebar-resize-indicator"></div>
@@ -210,7 +210,8 @@ pip install fastapi==0.109.0
 <pre><code class="language-yaml">dependencies:
   - scikit-learn==1.3.2
 </code></pre>
-<p>Lastly, we could also export the model to a self-contained model format. When exporting a model to this format, we should be able to set a version for the different operations (e.g. batch norm) used within the model. This ensures that the computations are the same for training &amp; serving. One example of this format is <a href="https://github.com/onnx/onnx">ONNX</a>. With ONNX we can simply set the target version when exporting a model. This version will be saved within the model binary. When loading the model for inference, the inference runtime will make sure that appropriate operations are used during inference calls.</p>
+<p>Lastly, we could also export the model to a self-contained model format. When exporting a model to this format, we should be able to set a version for the different operations (e.g. batch norm) used within the model. This ensures that the computations are the same for training &amp; serving.</p>
+<p>One example of this format is <a href="https://github.com/onnx/onnx">ONNX</a>. With ONNX we can simply set the target version when exporting a model. This version will be saved within the model binary. When loading the model for inference, the inference runtime will make sure that appropriate operations are used during inference calls.</p>
 <p>You can convert models from PyTorch, Tensorflow, sklearn and more easily with provided <a href="https://github.com/onnx/tutorials?tab=readme-ov-file#converting-to-onnx-format">converts</a>. Below is an example of exporting a sklearn model to ONNX:</p>
 <pre><code class="language-python">import numpy as np
 from sklearn.datasets import load_iris
@@ -238,7 +239,7 @@ with open("rf_iris.onnx", "wb") as f:
                                 <i class="fa fa-angle-left"></i>
                             </a>
 
-                            <a rel="next prefetch" href="online_serving_structure.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                            <a rel="next prefetch" href="serving_patterns.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                                 <i class="fa fa-angle-right"></i>
                             </a>
 
@@ -252,7 +253,7 @@ with open("rf_iris.onnx", "wb") as f:
                         <i class="fa fa-angle-left"></i>
                     </a>
 
-                    <a rel="next prefetch" href="online_serving_structure.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                    <a rel="next prefetch" href="serving_patterns.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                         <i class="fa fa-angle-right"></i>
                     </a>
             </nav>

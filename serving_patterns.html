@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>Infrastructure setup - Machine learning system design patterns</title>
+        <title>Serving patterns - Machine learning system design patterns</title>
 
 
         <!-- Custom HTML head -->
@@ -90,7 +90,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded affix "><a href="introduction.html">Introduction</a></li><li class="chapter-item expanded "><a href="training_workflow.html"><strong aria-hidden="true">1.</strong> Training workflow</a></li><li class="chapter-item expanded "><a href="decouple_feature_creation.html"><strong aria-hidden="true">2.</strong> Decoupling feature creation from workflows</a></li><li class="chapter-item expanded "><a href="embedd_processing_logic_model.html"><strong aria-hidden="true">3.</strong> Embed pre & post processing logic in the model</a></li><li class="chapter-item expanded "><a href="model_registry.html"><strong aria-hidden="true">4.</strong> Model registry</a></li><li class="chapter-item expanded "><a href="serving_patterns.html"><strong aria-hidden="true">5.</strong> Serving patterns</a></li><li class="chapter-item expanded "><a href="online_serving_structure.html"><strong aria-hidden="true">6.</strong> Online serving structure</a></li><li class="chapter-item expanded "><a href="data_validation_inference.html"><strong aria-hidden="true">7.</strong> Data validation for inference</a></li><li class="chapter-item expanded "><a href="infrastructure.html" class="active"><strong aria-hidden="true">8.</strong> Infrastructure setup</a></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="introduction.html">Introduction</a></li><li class="chapter-item expanded "><a href="training_workflow.html"><strong aria-hidden="true">1.</strong> Training workflow</a></li><li class="chapter-item expanded "><a href="decouple_feature_creation.html"><strong aria-hidden="true">2.</strong> Decoupling feature creation from workflows</a></li><li class="chapter-item expanded "><a href="embedd_processing_logic_model.html"><strong aria-hidden="true">3.</strong> Embed pre & post processing logic in the model</a></li><li class="chapter-item expanded "><a href="model_registry.html"><strong aria-hidden="true">4.</strong> Model registry</a></li><li class="chapter-item expanded "><a href="serving_patterns.html" class="active"><strong aria-hidden="true">5.</strong> Serving patterns</a></li><li class="chapter-item expanded "><a href="online_serving_structure.html"><strong aria-hidden="true">6.</strong> Online serving structure</a></li><li class="chapter-item expanded "><a href="data_validation_inference.html"><strong aria-hidden="true">7.</strong> Data validation for inference</a></li><li class="chapter-item expanded "><a href="infrastructure.html"><strong aria-hidden="true">8.</strong> Infrastructure setup</a></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle">
                 <div class="sidebar-resize-indicator"></div>
@@ -175,61 +175,31 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1 id="infrastructure-setup"><a class="header" href="#infrastructure-setup">Infrastructure setup</a></h1>
-<p>Developing machine learning models requires a lot of trial and error. For example, we might try different features, model architectures and so on. However, while having models in production we also want to separate these environments such that we don't accidentally make changes in production, which can cause an outage of our service. Therefore it's recommended to separate these clearly.</p>
-<p>The different environments should also be completely separated. This includes model serving, feature creation job, training jobs and so on.</p>
-<p>What do we mean by environments here? In Google Cloud &amp; Amazon Web Services this could be different projects. In kubernetes this could be different namespaces.</p>
-<h2 id="different-environments"><a class="header" href="#different-environments">Different environments</a></h2>
-<h3 id="sandbox"><a class="header" href="#sandbox">Sandbox</a></h3>
-<p>The sandbox environment is used for testing out new ideas where we are unsure whether they will work out or not. For example, we might introduce a new feature that we hope will increase the accuracy of the model. This would require us to change the feature creation job, as described in <a href="decouple_feature_creation.html">Decoupling feature creation from training &amp; serving workflow</a>. Now this could cause issues if we accidentally introduce a bug into the job if we ran it in the production environment. Therefore, it's recommended to try these experimental changes in our sandbox environment.</p>
-<h3 id="staging"><a class="header" href="#staging">Staging</a></h3>
-<p>The staging environment is simply used to verify changes before they go into production. Staging should mirror production as much as possible.</p>
-<h3 id="production"><a class="header" href="#production">Production</a></h3>
-<p>Production is used to serve actual users. For example, let say you have a model that serves recommendation for a video sharing site. When a user opens the app and sees video recommendations these comes from our production environments.</p>
-<p>Before changes goes into production we should be sure that they work, which we should test in staging.</p>
-<h2 id="promotion-to-production"><a class="header" href="#promotion-to-production">Promotion to production</a></h2>
-<p>If this would have been a non machine learning service, we could simply deploy the code to production. What makes machine learning products a bit more complicated is that we have two parts that needs to go into production, code and a trained model. So how can we do this?</p>
-<p>There are two common patterns for this:</p>
-<h3 id="completely-separated"><a class="header" href="#completely-separated">Completely separated</a></h3>
-<p>Here we have completely separated staging &amp; production. This means that we will train our model in staging for testing. If everything works as expected, we can run the training workflow again in production in order to get the production model, which will be used for serving. Below is a overview of this setup:</p>
-<pre class="mermaid">graph TB
-    subgraph Production
-    H[Training pipeline] --&gt; G[Model registry]
-    G --&gt; J[Model endpoint]
-    end
-    subgraph Staging
-    D[Training pipeline] --&gt; E[Model registry]
-    E --&gt; F[Test endpoint]
-    end
-    subgraph Sandbox
-    A[Training pipeline] --&gt; B[Model registry]
-    end
-</pre>
-<p>The drawback of this approach is that we need to train the model twice, once in staging and once in production. If the training job is computationally heavy this can become expensive. The advantage is that we have two completely separate environment, making accidental changes less likely.</p>
-<h3 id="transit-model-from-staging-to-production"><a class="header" href="#transit-model-from-staging-to-production">Transit model from staging to production</a></h3>
-<p>The other approach is to train the model in staging. Furthermore, we will validate that the model works as expected in staging. Once we are confident that the model is works as we want, we can transfer the model into the production environment (with the corresponding serving code). Once in production, it will be used for serving.</p>
-<pre class="mermaid">graph TD
-    subgraph Staging
-    D[Training pipeline] --&gt; E[Model registry]
-    E --&gt; F[Test endpoint]
-    end
-    subgraph Production
-    E --&gt;|copy| H[Model endpoint]
-    end
-    subgraph Sandbox
-    A[Training pipeline] --&gt; B[Model registry]
-    end
-</pre>
-<p>The drawback is that we couple staging &amp; production; however we only need to train the model once.</p>
+                        <h1 id="serving-patterns"><a class="header" href="#serving-patterns">Serving patterns</a></h1>
+<p>Once a model is trained we want to make it available for serving. There are typically three common ways of doing it:</p>
+<ol>
+  <li>Batch serving</li>
+  <li>Online serving</li>
+  <li>Hybrid serving</li>
+</ol>
+<p>Each of them have their own advantages and disadvantages.</p>
+<h2 id="batch-serving"><a class="header" href="#batch-serving">Batch serving</a></h2>
+<p>During batch serving we typically received a large number of rows and want to do inference on them. One example where this arises is that we want to make forecast of sales for different products on a weekly basis so that we can allocate appropriate volumes to different stores. The prediction job is executed every Saturday at midnight. Here we make make daily predictions for seven days, for each product and store. Image we have 100 stores, each with 1000 products. Therefore we would need to make 7,000,000 predictions. Here the batch-serving patterns fits well, since the number of rows are quite large and there is no tight latency requirements (it probably doesn't matter if the job takes 60 minutes or 90 minutes).</p>
+<p>One advantage of batch-serving is that we receive all rows at once and therefore it is easier to make efficient use of the hardware.</p>
+<h2 id="online-serving"><a class="header" href="#online-serving">Online serving</a></h2>
+<h2 id="hybrid-approach"><a class="header" href="#hybrid-approach">Hybrid approach</a></h2>
 
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
-                            <a rel="prev" href="data_validation_inference.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                            <a rel="prev" href="model_registry.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                                 <i class="fa fa-angle-left"></i>
                             </a>
 
+                            <a rel="next prefetch" href="online_serving_structure.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
 
                         <div style="clear: both"></div>
                     </nav>
@@ -237,10 +207,13 @@
             </div>
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
-                    <a rel="prev" href="data_validation_inference.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                    <a rel="prev" href="model_registry.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                         <i class="fa fa-angle-left"></i>
                     </a>
 
+                    <a rel="next prefetch" href="online_serving_structure.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
             </nav>
 
         </div>

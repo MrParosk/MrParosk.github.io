@@ -91,7 +91,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded affix "><a href="introduction.html">Introduction</a></li><li class="chapter-item expanded "><a href="training_workflow.html"><strong aria-hidden="true">1.</strong> Training workflow</a></li><li class="chapter-item expanded "><a href="decouple_feature_creation.html"><strong aria-hidden="true">2.</strong> Decoupling feature creation from workflows</a></li><li class="chapter-item expanded "><a href="embedd_processing_logic_model.html"><strong aria-hidden="true">3.</strong> Embed pre & post processing logic in the model</a></li><li class="chapter-item expanded "><a href="model_registry.html"><strong aria-hidden="true">4.</strong> Model registry</a></li><li class="chapter-item expanded "><a href="online_serving_structure.html"><strong aria-hidden="true">5.</strong> Serving patterns</a></li><li class="chapter-item expanded "><a href="online_serving_structure.html"><strong aria-hidden="true">6.</strong> Online serving structure</a></li><li class="chapter-item expanded "><a href="data_validation_inference.html"><strong aria-hidden="true">7.</strong> Data validation for inference</a></li><li class="chapter-item expanded "><a href="infrastructure.html"><strong aria-hidden="true">8.</strong> Infrastructure setup</a></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="introduction.html">Introduction</a></li><li class="chapter-item expanded "><a href="training_workflow.html"><strong aria-hidden="true">1.</strong> Training workflow</a></li><li class="chapter-item expanded "><a href="decouple_feature_creation.html"><strong aria-hidden="true">2.</strong> Decoupling feature creation from workflows</a></li><li class="chapter-item expanded "><a href="embedd_processing_logic_model.html"><strong aria-hidden="true">3.</strong> Embed pre & post processing logic in the model</a></li><li class="chapter-item expanded "><a href="model_registry.html"><strong aria-hidden="true">4.</strong> Model registry</a></li><li class="chapter-item expanded "><a href="serving_patterns.html"><strong aria-hidden="true">5.</strong> Serving patterns</a></li><li class="chapter-item expanded "><a href="online_serving_structure.html"><strong aria-hidden="true">6.</strong> Online serving structure</a></li><li class="chapter-item expanded "><a href="data_validation_inference.html"><strong aria-hidden="true">7.</strong> Data validation for inference</a></li><li class="chapter-item expanded "><a href="infrastructure.html"><strong aria-hidden="true">8.</strong> Infrastructure setup</a></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle">
                 <div class="sidebar-resize-indicator"></div>
@@ -298,7 +298,8 @@ pip install fastapi==0.109.0
 <pre><code class="language-yaml">dependencies:
   - scikit-learn==1.3.2
 </code></pre>
-<p>Lastly, we could also export the model to a self-contained model format. When exporting a model to this format, we should be able to set a version for the different operations (e.g. batch norm) used within the model. This ensures that the computations are the same for training &amp; serving. One example of this format is <a href="https://github.com/onnx/onnx">ONNX</a>. With ONNX we can simply set the target version when exporting a model. This version will be saved within the model binary. When loading the model for inference, the inference runtime will make sure that appropriate operations are used during inference calls.</p>
+<p>Lastly, we could also export the model to a self-contained model format. When exporting a model to this format, we should be able to set a version for the different operations (e.g. batch norm) used within the model. This ensures that the computations are the same for training &amp; serving.</p>
+<p>One example of this format is <a href="https://github.com/onnx/onnx">ONNX</a>. With ONNX we can simply set the target version when exporting a model. This version will be saved within the model binary. When loading the model for inference, the inference runtime will make sure that appropriate operations are used during inference calls.</p>
 <p>You can convert models from PyTorch, Tensorflow, sklearn and more easily with provided <a href="https://github.com/onnx/tutorials?tab=readme-ov-file#converting-to-onnx-format">converts</a>. Below is an example of exporting a sklearn model to ONNX:</p>
 <pre><code class="language-python">import numpy as np
 from sklearn.datasets import load_iris
@@ -317,6 +318,19 @@ onx = to_onnx(clr, X[:1], target_opset=21)  # Here we the sklearn model to ONNX,
 with open("rf_iris.onnx", "wb") as f:
   f.write(onx.SerializeToString())
 </code></pre>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="serving-patterns"><a class="header" href="#serving-patterns">Serving patterns</a></h1>
+<p>Once a model is trained we want to make it available for serving. There are typically three common ways of doing it:</p>
+<ol>
+  <li>Batch serving</li>
+  <li>Online serving</li>
+  <li>Hybrid serving</li>
+</ol>
+<p>Each of them have their own advantages and disadvantages.</p>
+<h2 id="batch-serving"><a class="header" href="#batch-serving">Batch serving</a></h2>
+<p>During batch serving we typically received a large number of rows and want to do inference on them. One example where this arises is that we want to make forecast of sales for different products on a weekly basis so that we can allocate appropriate volumes to different stores. The prediction job is executed every Saturday at midnight. Here we make make daily predictions for seven days, for each product and store. Image we have 100 stores, each with 1000 products. Therefore we would need to make 7,000,000 predictions. Here the batch-serving patterns fits well, since the number of rows are quite large and there is no tight latency requirements (it probably doesn't matter if the job takes 60 minutes or 90 minutes).</p>
+<p>One advantage of batch-serving is that we receive all rows at once and therefore it is easier to make efficient use of the hardware.</p>
+<h2 id="online-serving"><a class="header" href="#online-serving">Online serving</a></h2>
+<h2 id="hybrid-approach"><a class="header" href="#hybrid-approach">Hybrid approach</a></h2>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="online-serving-structure"><a class="header" href="#online-serving-structure">Online serving structure</a></h1>
 <p>When deploying our machine learning model for online inference we typically divide into two parts, our backend service and our machine learning inference service. Below is a diagram of the high-level overview of this setup:</p>
 <pre class="mermaid">graph LR
@@ -368,64 +382,6 @@ with open("rf_iris.onnx", "wb") as f:
 <p>Lastly, most of these inference servers allows us to off-load models that haven't been used in a while, and load it once a request comes for that specific model (of course with a latency cost). This feature can be helpful if we need to serve a large number of models. For example, imagine that we have a model that forecasts how much we will sell of an item in a given country. Through our experiments we have determined that having one model per country performed better then a global one. Furthermore, assume that we operate in many different countries. If we have included all steps in one service, we would have to deploy one of these services for each country (and potentially more if the number of requests are large). However when the steps are separated, we could co-locate all of the models on an inference server, potentially getting away with fewer deployments.</p>
 <p><a href="https://github.com/kserve/kserve">Kserve</a> and <a href="https://github.com/SeldonIO/seldon-core">Seldon</a> are examples of frameworks that uses this approach.</p>
 <h2 id="when-to-use-which-approach"><a class="header" href="#when-to-use-which-approach">When to use which approach?</a></h2>
-<p>So now naturally the question arises: "Which of these approaches should I take?"</p>
-<p>I would choose "grouping all steps together" if the following condition were meet:</p>
-<ul>
-<li>Number of served models are small for the application</li>
-<li>The model doesn't require an accelerator, such as GPUs, TPUs etc</li>
-</ul>
-<p>Otherwise I would go "separate each step".</p>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="online-serving-structure-1"><a class="header" href="#online-serving-structure-1">Online serving structure</a></h1>
-<p>When deploying our machine learning model for online inference we typically divide into two parts, our backend service and our machine learning inference service. Below is a diagram of the high-level overview of this setup:</p>
-<pre class="mermaid">graph LR
-    A[User] &lt;--&gt; B[Backend service]
-    B &lt;--&gt; C[Machine learning inference service]
-</pre>
-<p>Our backend service is responsible authenticate the request, fetching necessary data from the feature store etc. The machine learning inference service will be tasked with doing the actual inference of the machine learning model. It can be broken up into three parts; pre-process, predict and post-process.</p>
-<p>The pre-process step include steps like validating that the required data is available for doing the request, that the data types are correct etc. We try to avoid including model specific pre-processing step here, see <a href="embedd_processing_logic_model.html">Embed pre &amp; post processing logic in the model</a> for clarification.</p>
-<p>The predict part is where we do the actual model inference. We send in the data produces from pre-process step into the model to get the predictions.</p>
-<p>Lastly, we have the post-process step. Here we transform the outputted predictions into a format which can be used by the system as a whole. For example, we might transformed predicted class-ids into class names, such as 0 into the name 'Dog'.</p>
-<p>Now with these tree steps, how should they be deployed? As one service or spread out into multiple? There is a few different approaches for doing this which we will delve into now with their own advantages and disadvantages.</p>
-<h2 id="group-all-steps-together-in-one-service-1"><a class="header" href="#group-all-steps-together-in-one-service-1">Group all steps together in one service</a></h2>
-<p>The first approach we will discuss is to group all the steps into one service. Below is an example code structure:</p>
-<pre><code class="language-python">class InferenceHandler:
-    def __init__(self, model_path):
-        # load the model, e.g. with pickle
-        pass
-
-    def pre_process(self, x):
-        # define the pre-process logic in this function
-        pass
-
-    def predict(self, x):
-        # define how the model's predict function should be called in this function
-        pass
-
-    def post_process(self, x):
-        # define the post-process logic in this function
-        pass
-
-    def infer(self, x):
-        # in this function we glue all of the above step together
-        return self.post_process(self.predict(self.pre_process(x)))
-</code></pre>
-<p>The class above would then be included in a web-server which exposes an end-point that allow users to call it through HTTP or gRPC.</p>
-<p>The advantages of this approach that it is simple. You only need to deploy one service, making the deployment process a lot smoother. Furthermore, keeping the different steps in synchronisation is a lot easier. For example, imaging we wanted to update our predict function to accept batches of inputs (i.e. from input shape of (num_features) to (num_samples, num_features)). This change would require us to also update the pre &amp; post-processing steps. Now, if these were deployed separately, we would need re-deploy all the services which is more cumbersome.</p>
-<p><a href="https://github.com/googleapis/python-aiplatform/blob/main/google/cloud/aiplatform/prediction/sklearn/predictor.py">VertexAI model serving</a> and <a href="https://docs.ray.io/en/latest/serve/index.html">Ray Serve</a> are examples of frameworks that uses this approach.</p>
-<h2 id="separate-each-step-into-a-service-1"><a class="header" href="#separate-each-step-into-a-service-1">Separate each step into a service</a></h2>
-<p>The next approach is to separate each step into a service. These would then communicate over HTTP / gRPC. Below is a diagram of the communication flow:</p>
-<pre class="mermaid">graph LR
-    A[External service] --&gt; B[Pre-process service]
-    B --&gt; C[Predict service]
-    C --&gt; D[Post-process service]
-    D --&gt; A
-</pre>
-<p>Now you might ask "why would we want to do this"? To answer that question, lets imagine the following case-study:</p>
-<p>Let's say we have a large convolutional neural network that we want to deploy. To speed up the inference part we decide to run the model on a GPU. Furthermore, our pre-processing step is quite time-consuming, e.g. we want crop the image and convert from <a href="https://en.wikipedia.org/wiki/RGB_color_model">RGB</a> to <a href="https://en.wikipedia.org/wiki/HSL_and_HSV">HSV</a>. Moreover, let's say we are getting an increase in request so we need to scale-up this solution. If all the steps are grouped together, we need deploy additional replicas of the same service, regardless of which part is the bottleneck. Furthermore, during the pre &amp; post-processing step our GPU is idle which is wasteful since GPU's are expensive. Now imagine these were separate steps, then we could scale them separately depending on which part was the bottleneck.</p>
-<p>Another advantage of this separation is that we can co-locate our models on a model inference server, such as <a href="https://github.com/triton-inference-server/server">triton-inference-server</a> and <a href="https://github.com/tensorflow/serving">tensorflow serving</a>. Now we could load multiple replicas of a model and/or multiple models. This is advantages since it allow us to utilize our GPU better.</p>
-<p>Lastly, most of these inference servers allows us to off-load models that haven't been used in a while, and load it once a request comes for that specific model (of course with a latency cost). This feature can be helpful if we need to serve a large number of models. For example, imagine that we have a model that forecasts how much we will sell of an item in a given country. Through our experiments we have determined that having one model per country performed better then a global one. Furthermore, assume that we operate in many different countries. If we have included all steps in one service, we would have to deploy one of these services for each country (and potentially more if the number of requests are large). However when the steps are separated, we could co-locate all of the models on an inference server, potentially getting away with fewer deployments.</p>
-<p><a href="https://github.com/kserve/kserve">Kserve</a> and <a href="https://github.com/SeldonIO/seldon-core">Seldon</a> are examples of frameworks that uses this approach.</p>
-<h2 id="when-to-use-which-approach-1"><a class="header" href="#when-to-use-which-approach-1">When to use which approach?</a></h2>
 <p>So now naturally the question arises: "Which of these approaches should I take?"</p>
 <p>I would choose "grouping all steps together" if the following condition were meet:</p>
 <ul>
