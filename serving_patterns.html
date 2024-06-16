@@ -192,6 +192,7 @@
 </pre>
 <p>One advantage of batch-serving is that we receive all rows at once and therefore it is easier to make efficient use of the hardware. Also, since we pre-compute these the speed of receiving predictions when a user request them will be very quick since fetching items from a key-value store is fast (typically ~1 ms).</p>
 <p>One disadvantage is that we need to pre-compute the prediction for all possible combinations of feature, which grows exponentially. For example, imagine we instead wanted to forecast per hour. That would now require 16,800,000 predictions. And if we wanted more predictions columns, such as country, the number of rows we need to pre-compute grows quickly.</p>
+<p>Note that pre-computing the predictions is not always be possible. For example, imagine above that one of the features to our model would be the product description, which would be free-flowing text of type string. We could simply not pre-compute all possible descriptions a head of time since the number of possible combination is enormous. So we would need to drop this feature from the model in this case in order to pre-compute the predictions, which might be an acceptable solution, depending on how important this feature is for the model performance.</p>
 <h2 id="online-serving"><a class="header" href="#online-serving">Online serving</a></h2>
 <h2 id="hybrid-approach"><a class="header" href="#hybrid-approach">Hybrid approach</a></h2>
 
